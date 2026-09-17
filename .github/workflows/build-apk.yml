@@ -19,14 +19,18 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Android WebView Projesini Otomatik Olustur
+      - name: Android Lisanslarini Kabul Et
+        run: |
+          yes | sdkmanager --licenses || true
+
+      - name: Android WebView Projesini Olustur
         run: |
           mkdir -p app/src/main/java/com/sahrayicedit/veteriner
           mkdir -p app/src/main/assets
           mkdir -p app/src/main/res/layout
           mkdir -p app/src/main/res/values
 
-          # HTML dosyasını assets içine kopyala
+          # HTML dosyasını assets altına al
           cp index.html app/src/main/assets/index.html
 
           # settings.gradle
@@ -51,16 +55,26 @@ jobs:
 
           # Root build.gradle
           cat << 'EOF' > build.gradle
-          plugins {
-              id 'com.android.application' version '8.2.2' apply false
+          buildscript {
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+              dependencies {
+                  classpath 'com.android.tools.build:gradle:8.2.2'
+              }
+          }
+          allprojects {
+              repositories {
+                  google()
+                  mavenCentral()
+              }
           }
           EOF
 
           # app/build.gradle
           cat << 'EOF' > app/build.gradle
-          plugins {
-              id 'com.android.application'
-          }
+          apply plugin: 'com.android.application'
 
           android {
               namespace 'com.sahrayicedit.veteriner'
@@ -83,7 +97,6 @@ jobs:
 
           dependencies {
               implementation 'androidx.appcompat:appcompat:1.6.1'
-              implementation 'androidx.webkit:webkit:1.10.0'
           }
           EOF
 
@@ -95,7 +108,7 @@ jobs:
               <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
               <application
                   android:allowBackup="true"
-                  android:label="Sahrayıcedit Vet"
+                  android:label="Sahrayicedit Vet"
                   android:theme="@style/Theme.AppCompat.Light.NoActionBar"
                   android:usesCleartextTraffic="true">
                   <activity
@@ -114,7 +127,7 @@ jobs:
           # strings.xml
           cat << 'EOF' > app/src/main/res/values/strings.xml
           <resources>
-              <string name="app_name">Sahrayıcedit Vet</string>
+              <string name="app_name">Sahrayicedit Vet</string>
           </resources>
           EOF
 
@@ -132,7 +145,7 @@ jobs:
           </LinearLayout>
           EOF
 
-          # MainActivity.java (Alert/Confirm pencereleri ve full JS desteğiyle)
+          # MainActivity.java
           cat << 'EOF' > app/src/main/java/com/sahrayicedit/veteriner/MainActivity.java
           package com.sahrayicedit.veteriner;
 
@@ -202,15 +215,13 @@ jobs:
           }
           EOF
 
-      - name: Gradle Kurulumu ve APK Derleme
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          gradle-version: '8.5'
+      - name: Gradle Wrapper Olustur ve APK Derle
+        run: |
+          gradle wrapper --gradle-version 8.5
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
 
-      - name: APK Derle (assembleDebug)
-        run: gradle assembleDebug
-
-      - name: APK Dosyasini Artifact Olarak Yukle
+      - name: APK Dosyasini Yukle
         uses: actions/upload-artifact@v4
         with:
           name: Sahrayicedit-Veteriner-Debug-APK
