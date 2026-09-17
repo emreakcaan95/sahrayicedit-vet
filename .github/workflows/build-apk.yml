@@ -5,6 +5,10 @@ on:
     branches: [ "main" ]
   workflow_dispatch:
 
+env:
+  CI: true
+  CAPACITOR_TELEMETRY: 0
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -16,32 +20,33 @@ jobs:
       - name: Node.js Kurulumu
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 20
 
-      - name: Java Kurulumu
+      - name: Java (JDK 17) Kurulumu
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: 'zulu'
           java-version: '17'
 
-      - name: Web Dizinini ve Projeyi Hazirla
+      - name: Android SDK Kurulumu
+        uses: android-actions/setup-android@v3
+
+      - name: Web ve Capacitor Projesini Hazirla
         run: |
           mkdir -p www
           cp index.html www/index.html
           npm init -y
-          npm install --save @capacitor/core @capacitor/cli @capacitor/android
+          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
           npx cap init "Sahrayicedit Vet" "com.sahrayicedit.veteriner" --web-dir "www"
           npx cap add android
-          npx cap copy android
-          
-          # Android internet izni ekle
+          npx cap sync android
           sed -i '/<application/i <uses-permission android:name="android.permission.INTERNET" />' android/app/src/main/AndroidManifest.xml
 
-      - name: APK Derle
+      - name: APK Derle (Gradle)
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug --no-daemon
 
       - name: APK Dosyasini Yukle
         uses: actions/upload-artifact@v4
