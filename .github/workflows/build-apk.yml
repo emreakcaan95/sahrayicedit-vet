@@ -16,33 +16,32 @@ jobs:
       - name: Node.js Kurulumu
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
-      - name: Java (JDK 17) Kurulumu
+      - name: Java Kurulumu
         uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
+          distribution: 'temurin'
           java-version: '17'
 
-      - name: Web Dizinini Hazirla
+      - name: Web Dizinini ve Projeyi Hazirla
         run: |
           mkdir -p www
           cp index.html www/index.html
-
-      - name: Capacitor ile Android Projesini Olustur
-        run: |
           npm init -y
-          npm install @capacitor/core@latest @capacitor/cli@latest @capacitor/android@latest
+          npm install --save @capacitor/core @capacitor/cli @capacitor/android
           npx cap init "Sahrayicedit Vet" "com.sahrayicedit.veteriner" --web-dir "www"
           npx cap add android
-          npx cap sync
+          npx cap copy android
+          
+          # Android internet izni ekle
           sed -i '/<application/i <uses-permission android:name="android.permission.INTERNET" />' android/app/src/main/AndroidManifest.xml
 
       - name: APK Derle
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace
+          ./gradlew assembleDebug
 
       - name: APK Dosyasini Yukle
         uses: actions/upload-artifact@v4
