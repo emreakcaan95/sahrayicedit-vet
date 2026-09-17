@@ -1,0 +1,1681 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sahrayıcedit Veteriner Kliniği - Entegre Klinik Yönetim Portalı</title>
+    <!-- Tailwind CSS & FontAwesome -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-slate-100 font-sans text-slate-800 antialiased min-h-screen flex flex-col md:flex-row">
+
+    <!-- SOL KENAR MENÜSÜ -->
+    <aside class="w-full md:w-64 bg-emerald-950 text-white flex flex-col justify-between p-5 shadow-2xl shrink-0">
+        <div>
+            <div class="flex items-center gap-3 pb-6 border-b border-emerald-800/80 mb-6">
+                <div class="bg-emerald-500 text-white p-2.5 rounded-xl shadow">
+                    <i class="fa-solid fa-paw text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-base leading-tight tracking-wide">Sahrayıcedit</h1>
+                    <span class="text-xs text-emerald-400 font-semibold tracking-wider uppercase">Veteriner Kliniği</span>
+                </div>
+            </div>
+
+            <nav class="space-y-1.5 text-sm font-medium">
+                <button onclick="switchTab('tab-patients', this)" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl bg-emerald-800 text-white transition text-left">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-address-book w-5 text-center text-emerald-400"></i>
+                        <span>1. Hasta & Sahip Kartı</span>
+                    </div>
+                    <span id="badgeTotalCount" class="bg-emerald-700 text-white text-xs font-bold px-2 py-0.5 rounded-full">3</span>
+                </button>
+                <button onclick="switchTab('tab-surgeries', this)" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-emerald-100 hover:bg-emerald-900 transition text-left">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-hospital-user w-5 text-center text-emerald-400"></i>
+                        <span>2. Operasyon & Yatan</span>
+                    </div>
+                    <span id="badgeInpatientCount" class="bg-rose-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">2 Dolu</span>
+                </button>
+                <button onclick="switchTab('tab-appointments', this)" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-emerald-100 hover:bg-emerald-900 transition text-left">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-calendar-check w-5 text-center text-emerald-400"></i>
+                        <span>3. Randevu & Planlar</span>
+                    </div>
+                    <span id="badgeApptCount" class="bg-amber-500 text-emerald-950 text-xs font-bold px-2 py-0.5 rounded-full">6</span>
+                </button>
+                <button onclick="switchTab('tab-inventory', this)" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-emerald-100 hover:bg-emerald-900 transition text-left">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-boxes-stacked w-5 text-center text-emerald-400"></i>
+                        <span>4. İlaç & Stok Takip</span>
+                    </div>
+                    <span class="bg-rose-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">2 Kritik</span>
+                </button>
+                <button onclick="switchTab('tab-staff', this)" class="nav-btn w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-emerald-100 hover:bg-emerald-900 transition text-left">
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-user-clock w-5 text-center text-emerald-400"></i>
+                        <span>5. Vardiya & İzin Takip</span>
+                    </div>
+                    <span id="badgeStaffCount" class="bg-emerald-700 text-white text-xs font-bold px-2 py-0.5 rounded-full">4 Aktif</span>
+                </button>
+            </nav>
+        </div>
+
+        <div class="pt-6 border-t border-emerald-800/80 text-xs text-emerald-200">
+            <p class="font-bold text-white">Sahrayıcedit Panel</p>
+            <p class="text-emerald-400">Sistem Aktif</p>
+        </div>
+    </aside>
+
+    <!-- ANA İÇERİK HAVUZU -->
+    <main class="flex-1 p-5 lg:p-7 overflow-y-auto max-w-7xl mx-auto custom-scrollbar w-full">
+
+        <!-- ================= MODÜL 1: HASTA KARTI ================= -->
+        <section id="tab-patients" class="tab-content block">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-30">
+                <div class="flex items-center gap-3">
+                    <button type="button" onclick="resetToPatientHome()" title="Ekranı Boşalt" class="bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-300 px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0">
+                        <i class="fa-solid fa-house text-sm text-emerald-600"></i>
+                        <span>Ana Sayfa</span>
+                    </button>
+                    <div>
+                        <h2 class="text-xl font-bold text-slate-800 leading-tight">Hasta & Sahip Dosyası</h2>
+                        <p class="text-xs text-slate-500">Hasta arayın, operasyon, randevu, reçete ve rapor ekleyin.</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-3 w-full md:w-auto">
+                    <div class="relative flex-1 md:w-80">
+                        <input type="text" id="globalPatientSearch" oninput="handleGlobalSearch(this.value)" onfocus="handleGlobalSearch(this.value)" placeholder="Hasta, Sahip, Çip veya Tel Ara..." class="w-full pl-9 pr-8 py-2.5 text-xs bg-slate-50 border border-slate-300 rounded-xl focus:outline-none focus:border-emerald-500 font-medium">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-slate-400 text-xs"></i>
+                        <button onclick="clearSearch()" id="clearSearchBtn" class="hidden absolute right-3 top-3 text-slate-400 hover:text-slate-600 text-xs"><i class="fa-solid fa-circle-xmark"></i></button>
+                        <div id="searchResultsDropdown" class="hidden absolute top-12 left-0 w-full bg-white rounded-xl shadow-2xl border border-slate-200 max-h-72 overflow-y-auto custom-scrollbar p-1.5 z-50"></div>
+                    </div>
+                    <button type="button" onclick="openNewPatientModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-md transition flex items-center gap-2 shrink-0">
+                        <i class="fa-solid fa-circle-plus text-sm"></i>
+                        <span>Yeni Hasta Kaydet</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="patientHomeEmptyView" class="bg-white rounded-3xl border border-slate-200 shadow-sm p-10 text-center flex flex-col items-center justify-center min-h-[440px]">
+                <div class="w-20 h-20 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center text-3xl mb-4 shadow-sm"><i class="fa-solid fa-folder-open"></i></div>
+                <h3 class="text-xl font-bold text-slate-800">Açık Hasta Dosyası Yok</h3>
+                <p class="text-sm text-slate-500 max-w-md mt-1 mb-6">İncelemek istediğiniz hastayı yukarıdaki arama kutusundan (Örn: Luna, Duman, Max) seçebilir veya kliniğe ilk kez gelen bir hasta için yeni kayıt açabilirsiniz.</p>
+                <div class="flex flex-wrap items-center justify-center gap-3">
+                    <button onclick="document.getElementById('globalPatientSearch').focus()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2">
+                        <i class="fa-solid fa-magnifying-glass"></i><span>Kayıtlı Hastalarda Ara</span>
+                    </button>
+                    <button onclick="openNewPatientModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm flex items-center gap-2">
+                        <i class="fa-solid fa-circle-plus"></i><span>Yeni Hasta Kaydet</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="patientDetailsActiveView" class="hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div class="lg:col-span-3 space-y-4">
+                    <div class="bg-white p-4 rounded-2xl border border-emerald-300 shadow-sm relative">
+                        <span class="absolute top-3 right-3 bg-emerald-100 text-emerald-800 text-[9px] font-bold px-2 py-0.5 rounded-full">Açık Dosya</span>
+                        <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+                            <div id="activePetEmoji" class="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center text-2xl font-bold shadow-inner shrink-0">🐕</div>
+                            <div>
+                                <h3 id="activePetName" class="text-base font-black text-slate-800 tracking-tight leading-tight">-</h3>
+                                <p id="activePetBreed" class="text-[11px] font-semibold text-emerald-700">-</p>
+                            </div>
+                        </div>
+                        <div class="py-2.5 border-b border-slate-100 text-[11px] space-y-1.5">
+                            <div class="flex justify-between text-slate-500"><span>Cinsiyet / Yaş:</span><span id="activePetGenderAge" class="font-bold text-slate-700">-</span></div>
+                            <div class="flex justify-between text-slate-500"><span>Güncel Kilo:</span><span id="activePetWeight" class="font-black text-emerald-700">-</span></div>
+                            <div class="flex justify-between text-slate-500"><span>Mikroçip No:</span><span id="activePetChip" class="font-mono font-bold text-slate-700 text-[10px]">-</span></div>
+                        </div>
+                        <div class="pt-2 text-[11px] space-y-1">
+                            <div class="flex items-center gap-1.5"><i class="fa-solid fa-user text-slate-400 text-[10px]"></i><span id="activeOwnerName" class="font-bold text-slate-800">-</span></div>
+                            <div class="flex items-center gap-1.5 text-slate-600"><i class="fa-solid fa-phone text-slate-400 text-[10px]"></i><span id="activeOwnerPhone" class="font-mono text-[10px]">-</span></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm space-y-2">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1"><i class="fa-solid fa-bolt text-amber-500 mr-1"></i> Bu Hasta İçin Hızlı İşlemler</span>
+                        <button onclick="goToSurgeryForCurrentPatient()" class="w-full text-left p-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200 transition flex items-center justify-between">
+                            <div class="flex items-center gap-2"><i class="fa-solid fa-scissors text-emerald-600"></i><span class="text-xs font-bold text-emerald-950">Operasyon Aç</span></div>
+                            <i class="fa-solid fa-chevron-right text-xs text-emerald-400"></i>
+                        </button>
+                        <button onclick="openPlanModalForCurrentPatient()" class="w-full text-left p-2.5 rounded-xl bg-amber-50 hover:bg-amber-100/80 border border-amber-200 transition flex items-center justify-between">
+                            <div class="flex items-center gap-2"><i class="fa-solid fa-calendar-plus text-amber-600"></i><span class="text-xs font-bold text-amber-950">Randevu & Plan Ekle</span></div>
+                            <i class="fa-solid fa-chevron-right text-xs text-amber-400"></i>
+                        </button>
+                        <button onclick="openRxModalForCurrentPatient()" class="w-full text-left p-2.5 rounded-xl bg-blue-50 hover:bg-blue-100/80 border border-blue-200 transition flex items-center justify-between">
+                            <div class="flex items-center gap-2"><i class="fa-solid fa-prescription-bottle-medical text-blue-600"></i><span class="text-xs font-bold text-blue-950">Reçete & İlaç Yaz</span></div>
+                            <i class="fa-solid fa-chevron-right text-xs text-blue-400"></i>
+                        </button>
+                        <button onclick="openReportModalForCurrentPatient()" class="w-full text-left p-2.5 rounded-xl bg-purple-50 hover:bg-purple-100/80 border border-purple-200 transition flex items-center justify-between">
+                            <div class="flex items-center gap-2"><i class="fa-solid fa-file-medical text-purple-600"></i><span class="text-xs font-bold text-purple-950">Rapor / Sonuç Ekle</span></div>
+                            <i class="fa-solid fa-chevron-right text-xs text-purple-400"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-9 space-y-6">
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                        <h4 class="font-bold text-slate-800 text-sm mb-3"><i class="fa-solid fa-clock-rotate-left text-emerald-600 mr-1"></i> Klinik Geçmiş Çizelgesi (<span id="timelinePetName">-</span>)</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-4 gap-2 text-center text-xs" id="timelineContainer"></div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+                            <h4 class="font-bold text-slate-800 text-base"><i class="fa-solid fa-file-waveform text-purple-600 mr-1"></i> Laboratuvar & Görüntüleme Raporları (<span id="reportPetName">-</span>)</h4>
+                            <button onclick="openReportModalForCurrentPatient()" class="bg-purple-600 hover:bg-purple-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5"><i class="fa-solid fa-cloud-arrow-up"></i> Yeni Rapor Yükle</button>
+                        </div>
+                        <div id="reportsListContainer" class="space-y-3"></div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <h4 class="font-bold text-slate-800 text-base"><i class="fa-solid fa-stethoscope text-emerald-600 mr-1"></i> Son Cerrahi / Tıbbi Kayıt</h4>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-center text-xs">
+                            <div class="p-2 bg-slate-50 rounded-xl border"><span class="text-[10px] text-slate-400 block">Ateş</span><span id="vTemp" class="font-bold text-slate-800">-</span></div>
+                            <div class="p-2 bg-slate-50 rounded-xl border"><span class="text-[10px] text-slate-400 block">Nabız</span><span id="vPulse" class="font-bold text-slate-800">-</span></div>
+                            <div class="p-2 bg-slate-50 rounded-xl border"><span class="text-[10px] text-slate-400 block">Solunum</span><span id="vResp" class="font-bold text-slate-800">-</span></div>
+                            <div class="p-2 bg-slate-50 rounded-xl border"><span class="text-[10px] text-slate-400 block">Kilo</span><span id="vWeight" class="font-bold text-slate-800">-</span></div>
+                            <div class="p-2 bg-slate-50 rounded-xl border"><span class="text-[10px] text-slate-400 block">Tansiyon</span><span id="vBP" class="font-bold text-slate-800">-</span></div>
+                            <div class="p-2 bg-slate-50 rounded-xl border"><span class="text-[10px] text-slate-400 block">SpO2</span><span id="vSpO2" class="font-bold text-slate-800">-</span></div>
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-xl border text-xs text-slate-700" id="mSurgNotes">Operasyon notu bulunmuyor.</div>
+                    </div>
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <h4 class="font-bold text-slate-800 text-base"><i class="fa-solid fa-prescription-bottle-medical text-emerald-600 mr-1"></i> Klinik Reçete (<span id="rxPetName">-</span>)</h4>
+                        <div id="rxContainer" class="bg-slate-50 p-4 rounded-xl border text-xs text-slate-500">Aktif reçete yok.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= MODÜL 2: OPERASYON & YATAN HASTA ================= -->
+        <section id="tab-surgeries" class="tab-content hidden">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-slate-800">Operasyon & Yatan Hasta Yönetimi</h2>
+                    <p class="text-xs text-slate-500">Kafes doluluk durumu ve cerrahi operasyon kayıtları.</p>
+                </div>
+                <button onclick="openSurgeryModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow transition flex items-center gap-2">
+                    <i class="fa-solid fa-scissors"></i><span>Yeni Operasyon Aç</span>
+                </button>
+            </div>
+            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm mb-6">
+                <h3 class="font-bold text-slate-800 text-sm mb-3">Klinik Kafes & Yatış Şeması</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" id="cagesContainer"></div>
+            </div>
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-4 border-b font-bold text-sm text-slate-800">Cerrahi Operasyon Kütüğü</div>
+                <table class="w-full text-left text-xs text-slate-600">
+                    <thead class="bg-slate-50 uppercase font-bold text-slate-400 border-b">
+                        <tr><th class="px-5 py-3">Hasta & Sahip</th><th class="px-5 py-3">Operasyon Adı</th><th class="px-5 py-3">Cerrah</th><th class="px-5 py-3">Tarih</th><th class="px-5 py-3">Durum</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100" id="surgeryHistoryTable"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ================= MODÜL 3: RANDEVU & PLANLAR ================= -->
+        <section id="tab-appointments" class="tab-content hidden">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm mb-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <h2 class="text-xl font-bold text-slate-800">Randevu Ajandası & Gelecek Planlar</h2>
+                <div class="flex items-center gap-3">
+                    <div class="bg-slate-100 p-1 rounded-xl flex items-center border text-xs font-bold">
+                        <button onclick="setCalendarView('daily')" id="btnViewDaily" class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white transition">Günlük</button>
+                        <button onclick="setCalendarView('weekly')" id="btnViewWeekly" class="px-3 py-1.5 rounded-lg text-slate-600 transition">Haftalık</button>
+                        <button onclick="setCalendarView('monthly')" id="btnViewMonthly" class="px-3 py-1.5 rounded-lg text-slate-600 transition">Aylık</button>
+                    </div>
+                    <button onclick="openNewAppointmentModalGlobal()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition">+ Yeni Randevu</button>
+                </div>
+            </div>
+            <div id="viewContainerDaily" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div class="lg:col-span-7 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="font-bold text-sm text-slate-800">Günlük Randevu Akışı (17 Eylül 2026)</h3>
+                    <div class="space-y-2.5" id="dailyAppointmentsList"></div>
+                </div>
+                <div class="lg:col-span-5 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="font-bold text-sm text-slate-800">Yaklaşan Aşı & Planlar</h3>
+                    <div class="space-y-2.5" id="dailyFuturePlansList"></div>
+                </div>
+            </div>
+            <div id="viewContainerWeekly" class="hidden bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3" id="weeklyColumnsGrid"></div>
+            </div>
+            <div id="viewContainerMonthly" class="hidden bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                <div class="grid grid-cols-7 text-center text-xs font-bold text-slate-400 pb-2 border-b">
+                    <span>Pzt</span><span>Sal</span><span>Çar</span><span>Per</span><span>Cum</span><span>Cmt</span><span>Paz</span>
+                </div>
+                <div class="grid grid-cols-7 gap-1.5 pt-2" id="monthlyDaysGrid"></div>
+            </div>
+        </section>
+
+        <!-- ================= MODÜL 4: STOK ================= -->
+        <section id="tab-inventory" class="tab-content hidden">
+            <h2 class="text-2xl font-bold text-slate-800 mb-4">İlaç & Stok Yönetimi</h2>
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
+                <table class="w-full text-left text-xs">
+                    <thead><tr class="border-b text-slate-400"><th class="py-2">Ürün Adı</th><th>Stok</th><th>Durum</th></tr></thead>
+                    <tbody>
+                        <tr class="border-b"><td class="py-2.5 font-bold">Rabisin Kuduz Aşısı</td><td>24 Flakon</td><td><span class="bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded">Normal</span></td></tr>
+                        <tr><td class="py-2.5 font-bold text-rose-600">İzofluran Gaz Anestezik</td><td>1 Şişe</td><td><span class="bg-rose-100 text-rose-700 font-bold px-2 py-0.5 rounded">Kritik!</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- ================= MODÜL 5: VARDİYA & İZİN ================= -->
+        <section id="tab-staff" class="tab-content hidden">
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm mb-6 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800">Vardiya, Nöbet & İzin Analitiği</h2>
+                    <p class="text-xs text-slate-500">Personel statüsünü seçin, isimle arayın veya tek bir personelin tüm hareketlerine odaklanın.</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <div class="bg-slate-100 p-1 rounded-xl flex items-center border border-slate-200 text-xs font-bold">
+                        <button onclick="setStaffStatusFilter('active')" id="btnStatusActive" class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition">Aktifler (<span id="countStatusActive">4</span>)</button>
+                        <button onclick="setStaffStatusFilter('inactive')" id="btnStatusInactive" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-800 transition">Ayrılanlar (<span id="countStatusInactive">1</span>)</button>
+                        <button onclick="setStaffStatusFilter('all')" id="btnStatusAll" class="px-2.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-800 transition">Tümü</button>
+                    </div>
+                    <input type="text" id="staffSearchQueryInput" oninput="handleStaffTextSearch(this.value)" placeholder="Personel Ara..." class="w-44 pl-3 pr-3 py-2 text-xs bg-slate-50 border border-slate-300 rounded-xl">
+                    <select id="staffFilterSelect" onchange="handleStaffFilterChange(this.value)" class="w-48 pl-3 pr-3 py-2 text-xs bg-emerald-50 border border-emerald-300 rounded-xl font-bold text-emerald-950"></select>
+                    <div class="bg-slate-100 p-1 rounded-xl flex items-center border border-slate-200 text-xs font-bold">
+                        <button onclick="setShiftCalendarView('weekly')" id="btnShiftWeekly" class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition">Haftalık</button>
+                        <button onclick="setShiftCalendarView('monthly')" id="btnShiftMonthly" class="px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-800 transition">Aylık</button>
+                    </div>
+                    <button onclick="openManageStaffModal()" class="bg-slate-800 hover:bg-slate-900 text-white px-3 py-2 rounded-xl text-xs font-bold shadow transition">Kadro</button>
+                    <button onclick="openLeaveRequestModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-xl text-xs font-bold shadow transition">İzin Yaz</button>
+                </div>
+            </div>
+
+            <div id="filterBannerContainer" class="hidden bg-emerald-50 border border-emerald-200 rounded-2xl p-3.5 mb-6 flex items-center justify-between">
+                <span class="text-xs font-bold text-emerald-950">Özel Personel Görünümü: <span id="filterBannerName" class="text-emerald-700 font-black">-</span></span>
+                <button onclick="resetStaffFilter()" class="bg-white text-emerald-900 border border-emerald-300 px-3 py-1.5 rounded-xl text-xs font-bold">Filtreyi Temizle</button>
+            </div>
+
+            <div id="shiftViewWeeklyContainer" class="space-y-6">
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <h3 class="font-bold text-sm text-slate-800">Haftalık Nöbet Çizelgesi (14 - 20 Eylül 2026)</h3>
+                    <table class="w-full text-left text-xs border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-400 font-bold border-b uppercase text-[10px]">
+                                <th class="p-3 w-52">Personel & Unvan</th>
+                                <th class="p-2 text-center">Pzt</th><th class="p-2 text-center">Sal</th><th class="p-2 text-center">Çar</th>
+                                <th class="p-2 text-center bg-emerald-50 text-emerald-900">Per (Bugün)</th>
+                                <th class="p-2 text-center">Cum</th><th class="p-2 text-center">Cmt</th><th class="p-2 text-center">Paz</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 font-medium" id="shiftMatrixBody"></tbody>
+                    </table>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <div class="lg:col-span-8 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <h3 class="font-bold text-sm text-slate-800">Personel Durumu & Kalan İzinler</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5" id="staffCardsContainer"></div>
+                    </div>
+                    <div class="lg:col-span-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <h3 class="font-bold text-sm text-slate-800">İzin / Rapor Hareketleri</h3>
+                        <div class="space-y-2.5" id="leaveHistoryContainer"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="shiftViewMonthlyContainer" class="hidden bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                <h3 class="font-bold text-sm text-slate-800">Eylül 2026 Nöbet & İzin Haritası</h3>
+                <div class="grid grid-cols-7 text-center text-xs font-bold text-slate-400 pb-2 border-b">
+                    <span>Pzt</span><span>Sal</span><span>Çar</span><span>Per</span><span>Cum</span><span>Cmt</span><span>Paz</span>
+                </div>
+                <div class="grid grid-cols-7 gap-1.5 pt-2" id="monthlyShiftDaysGrid"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ================= MODALLAR ================= -->
+
+    <!-- MODAL: YENİ HASTA KAYDET -->
+    <div id="modalNewPatient" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
+            <h4 class="font-bold text-slate-800 mb-3 text-sm">Yeni Hasta & Sahip Kartı Aç</h4>
+            <form onsubmit="handleSaveNewPatient(event)" class="space-y-3 text-xs">
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="text" id="inpPetName" required placeholder="Hasta Adı" class="border p-2 rounded-lg">
+                    <input type="text" id="inpBreed" required placeholder="Tür / Irk" class="border p-2 rounded-lg">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="text" id="inpOwner" required placeholder="Sahip Adı" class="border p-2 rounded-lg">
+                    <input type="tel" id="inpPhone" required placeholder="Telefon" class="border p-2 rounded-lg">
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeNewPatientModal()" class="px-3 py-1.5 text-slate-500">Kapat</button>
+                    <button type="submit" class="px-4 py-2 bg-emerald-600 text-white font-bold rounded-lg">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: OPERASYON AÇ -->
+    <div id="modalSurgery" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <h4 class="font-bold text-slate-800 mb-3 text-sm">Yeni Operasyon Kaydı</h4>
+            <form onsubmit="handleExecuteSurgery(event)" class="space-y-3 text-xs">
+                <select id="opSelectPatient" required class="w-full border p-2 rounded-lg font-bold"></select>
+                <select id="opSelectSurgeryType" class="w-full border p-2 rounded-lg">
+                    <option>Ovariohisterektomi (Dişi Kısırlaştırma)</option>
+                    <option>Orşiektomi (Erkek Kısırlaştırma)</option>
+                    <option>Kırık Fiksasyonu (Pin/Plak)</option>
+                    <option>Diş Taşı Temizliği & Polisaj</option>
+                </select>
+                <select id="opSelectVet" class="w-full border p-2 rounded-lg">
+                    <option>Vet. Hekim Selin Kaya</option>
+                    <option>Vet. Hekim Can Yılmaz</option>
+                </select>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeSurgeryModal()" class="px-3 py-1.5 text-slate-500">Vazgeç</button>
+                    <button type="submit" class="px-4 py-2 bg-emerald-600 text-white font-bold rounded-lg">Kaydet & Dosyaya Aktar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: HASTAYA PLAN & RANDEVU -->
+    <div id="modalAddPlan" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <h4 class="font-bold text-slate-800 mb-3 text-sm">Randevu & Plan Ekle (<span id="modalPlanPetName">-</span>)</h4>
+            <form onsubmit="handleSavePlanForCurrentPatient(event)" class="space-y-3 text-xs">
+                <select id="quickPlanType" class="w-full border p-2 rounded-lg font-semibold">
+                    <option>Kuduz Aşısı Tekrarı</option><option>Karma Aşı 2. Doz</option><option>İç & Dış Parazit</option><option>Post-Op Dikiş Alma</option>
+                </select>
+                <input type="date" id="quickPlanDate" required class="w-full border p-2 rounded-lg">
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closePlanModal()" class="px-3 py-1.5 text-slate-500">Vazgeç</button>
+                    <button type="submit" class="px-4 py-2 bg-amber-500 text-white font-bold rounded-lg">Planı Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: HASTAYA REÇETE YAZ -->
+    <div id="modalAddRx" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <h4 class="font-bold text-slate-800 mb-3 text-sm">Reçete & İlaç Yaz (<span id="modalRxPetName">-</span>)</h4>
+            <form onsubmit="handleSaveRxForCurrentPatient(event)" class="space-y-3 text-xs">
+                <input type="text" id="quickRxName" required placeholder="İlaç Adı (Örn: Synulox)" class="w-full border p-2 rounded-lg font-semibold">
+                <input type="text" id="quickRxUsage" required placeholder="Kullanım Şekli (Örn: Günde 2 kez 1 tablet)" class="w-full border p-2 rounded-lg">
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeRxModal()" class="px-3 py-1.5 text-slate-500">Vazgeç</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white font-bold rounded-lg">Reçeteyi Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: HASTAYA RAPOR EKLE -->
+    <div id="modalAddReport" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <h4 class="font-bold text-slate-800 mb-3 text-sm">Tıbbi Rapor Ekle (<span id="modalReportPetName">-</span>)</h4>
+            <form onsubmit="handleSaveReportForCurrentPatient(event)" class="space-y-3 text-xs">
+                <select id="repType" class="w-full border p-2 rounded-lg font-semibold">
+                    <option>Hemogram (CBC)</option><option>Biyokimya Paneli</option><option>Röntgen (Radyoloji)</option><option>Abdominal USG</option>
+                </select>
+                <input type="date" id="repDate" required class="w-full border p-2 rounded-lg">
+                <input type="text" id="repStatusSummary" required placeholder="Sonuç Özeti (Örn: Lökositoz (+))" class="w-full border p-2 rounded-lg font-bold">
+                <textarea id="repNotes" rows="2" required placeholder="Ayrıntılı bulgular..." class="w-full border p-2 rounded-lg"></textarea>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeReportModal()" class="px-3 py-1.5 text-slate-500">Vazgeç</button>
+                    <button type="submit" class="px-4 py-2 bg-purple-600 text-white font-bold rounded-lg">Raporu Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: KAFESE TEDAVİ GİRİŞİ -->
+    <div id="modalCageTreatment" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <h4 class="font-bold text-slate-800 mb-3 text-sm">Kafes Tedavi Girişi (<span id="cageModalTitle">-</span>)</h4>
+            <form onsubmit="handleSaveCageTreatment(event)" class="space-y-3 text-xs">
+                <input type="text" id="cageTemp" required placeholder="Ateş (38.5 °C)" class="w-full border p-2 rounded-lg">
+                <select id="cageIvStatus" class="w-full border p-2 rounded-lg"><option>Serum Aktif</option><option>Serum Bitti</option><option>İntraket Takılı</option></select>
+                <input type="text" id="cageAction" required placeholder="Uygulanan İlaç / Tedavi" class="w-full border p-2 rounded-lg">
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeCageTreatmentModal()" class="px-3 py-1.5 text-slate-500">Kapat</button>
+                    <button type="submit" class="px-4 py-2 bg-emerald-600 text-white font-bold rounded-lg">İşle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: KAFESE HASTA YATIR -->
+    <div id="modalAdmitPatient" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <h4 class="font-bold text-slate-800 mb-3 text-sm">Kafese Hasta Yatır (<span id="admitModalCageCode">-</span>)</h4>
+            <form onsubmit="handleSaveAdmitPatient(event)" class="space-y-3 text-xs">
+                <select id="admitSelectPatient" required class="w-full border p-2 rounded-lg font-semibold"></select>
+                <select id="admitReason" class="w-full border p-2 rounded-lg font-semibold"><option>Yoğun Bakım</option><option>Cerrahi Sonrası Gözlem</option><option>Pansiyon</option></select>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeAdmitModal()" class="px-3 py-1.5 text-slate-500">Vazgeç</button>
+                    <button type="submit" class="px-4 py-2 bg-amber-500 text-white font-bold rounded-lg">Yatışı Onayla</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: YENİ RANDEVU EKLE -->
+    <div id="modalNewAppointment" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <h4 class="font-bold text-slate-800 mb-3 text-sm">Yeni Randevu</h4>
+            <form onsubmit="handleSaveNewAppointment(event)" class="space-y-3 text-xs">
+                <select id="apptPatientSelect" required class="w-full border p-2 rounded-lg font-bold"></select>
+                <input type="date" id="apptDate" required class="w-full border p-2 rounded-lg">
+                <input type="time" id="apptTime" required value="14:30" class="w-full border p-2 rounded-lg">
+                <select id="apptType" class="w-full border p-2 rounded-lg"><option>Rutin Muayene</option><option>Aşı Uygulaması</option><option>Kontrol</option></select>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeNewAppointmentModal()" class="px-3 py-1.5 text-slate-500">Vazgeç</button>
+                    <button type="submit" class="px-4 py-2 bg-emerald-600 text-white font-bold rounded-lg">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: KADRO YÖNETİMİ (EKLE/ÇIKAR) -->
+    <div id="modalManageStaff" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl p-6 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center pb-3 border-b mb-4">
+                <h4 class="font-bold text-slate-800 text-base">Personel Kadro & Durum Yönetimi</h4>
+                <button onclick="closeManageStaffModal()" class="text-slate-400 text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form onsubmit="handleAddNewStaffFromModal(event)" class="bg-slate-50 p-4 rounded-xl border mb-6 space-y-3 text-xs">
+                <span class="font-bold text-emerald-950 block text-[11px]">+ Hızlı Personel Ekle</span>
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+                    <input type="text" id="stfNewName" required placeholder="Adı Soyadı" class="border p-2 rounded-lg bg-white font-semibold">
+                    <select id="stfNewRole" class="border p-2 rounded-lg bg-white font-semibold"><option>Yönetici Hekim</option><option>Nöbetçi Hekim</option><option>Veteriner Sağlık Teknikeri</option><option>Klinik Karşılama</option></select>
+                    <input type="tel" id="stfNewPhone" required placeholder="Telefon" class="border p-2 rounded-lg bg-white">
+                    <div class="flex gap-1.5">
+                        <input type="number" id="stfNewLeave" value="14" min="0" class="border p-2 rounded-lg bg-white font-bold w-full">
+                        <button type="submit" class="bg-emerald-600 text-white px-3 py-2 rounded-lg font-bold">Ekle</button>
+                    </div>
+                </div>
+            </form>
+            <div class="border rounded-xl overflow-hidden">
+                <table class="w-full text-left text-xs text-slate-600">
+                    <thead class="bg-slate-50 font-bold uppercase text-[10px] text-slate-400 border-b">
+                        <tr><th class="p-3">Adı Soyadı</th><th class="p-3">Rol</th><th class="p-3">Telefon</th><th class="p-3">Statü</th><th class="p-3 text-right">İşlem</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100" id="staffManagementTableBody"></tbody>
+                </table>
+            </div>
+            <div class="mt-6 pt-3 border-t flex justify-end">
+                <button type="button" onclick="closeManageStaffModal()" class="px-5 py-2 text-xs bg-slate-800 text-white font-bold rounded-lg">Kapat</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: İZİN GİRİŞİ YAP -->
+    <div id="modalLeaveRequest" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
+            <h4 class="font-bold text-slate-800 text-sm mb-3">Personel İzin Girişi</h4>
+            <form onsubmit="handleSaveLeaveRequest(event)" class="space-y-3.5 text-xs">
+                <select id="leaveStaffSelect" required class="w-full border p-2 rounded-lg font-semibold"></select>
+                <div class="grid grid-cols-2 gap-2">
+                    <select id="leaveType" class="w-full border p-2 rounded-lg"><option value="Yıllık İzin">Yıllık Ücretli İzin</option><option value="Mazeret İzni">Mazeret İzni</option></select>
+                    <input type="number" id="leaveDaysCount" required value="3" min="1" class="w-full border p-2 rounded-lg font-bold">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <input type="date" id="leaveStartDate" required class="w-full border p-2 rounded-lg">
+                    <input type="date" id="leaveEndDate" required class="w-full border p-2 rounded-lg">
+                </div>
+                <div class="flex justify-end gap-2 pt-2 border-t">
+                    <button type="button" onclick="closeLeaveRequestModal()" class="px-3 py-1.5 text-slate-500">Vazgeç</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white font-bold rounded-lg shadow">İzni Onayla & Düş</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: HIZLI NÖBET DEĞİŞTİR -->
+    <div id="modalQuickShift" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-5">
+            <h4 class="font-bold text-slate-800 text-xs mb-2">Vardiya Belirle</h4>
+            <p class="text-xs text-slate-500 mb-3" id="quickShiftTargetText">-</p>
+            <div class="space-y-2 text-xs font-bold">
+                <button onclick="applyShiftChange('Gündüz')" class="w-full p-2.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-300 text-left">☀️ Gündüz (09:00 - 18:00)</button>
+                <button onclick="applyShiftChange('Gece')" class="w-full p-2.5 rounded-xl bg-purple-50 text-purple-800 border border-purple-300 text-left">🌙 Gece Nöbeti (18:00 - 09:00)</button>
+                <button onclick="applyShiftChange('İzinli')" class="w-full p-2.5 rounded-xl bg-blue-50 text-blue-800 border border-blue-300 text-left">🏖️ İzinli</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= JAVASCRIPT: EKSİKSİZ VERİ VE ÇALIŞTIRMA MOTORU ================= -->
+    <script>
+        // 1. HASTA VERİTABANI
+        const patientDatabase = {
+            "p1": {
+                name: "Luna", emoji: "🐕", breed: "Golden Retriever", gender: "Dişi", age: "4 Yaş", weight: "32.0 kg",
+                chip: "981098109923841", owner: "Ahmet Yılmaz", phone: "0532 555 12 34",
+                timeline: [{ date: "Bugün", type: "Rutin Kontrol", note: "Genel Muayene", active: true }],
+                muayene: {
+                    date: "Bugün", vet: "Vet. Selin Kaya", complaint: "Genel Kontrol",
+                    vitals: { temp: "38.5 °C", pulse: "110 bpm", resp: "24 /dk", weight: "32.0 kg", bp: "120/80", spo2: "%99" },
+                    notes: "Genel sağlık durumu gayet iyi.", procedure: "Rutin Muayene", conclusion: "Sağlıklı."
+                },
+                rx: { name: "Synulox Antibiyotik", usage: "Günde 2 kez 1 tablet", note: "Tok karnına veriniz." },
+                reports: [
+                    { type: "Hemogram (CBC)", date: "Bugün", doctor: "Vet. Selin Kaya", status: "Lökositoz (WBC: 15.2)", isWarning: true, notes: "Bakteriyel yangı bulgusu.", fileName: "Luna_CBC.pdf" }
+                ]
+            },
+            "p2": {
+                name: "Duman", emoji: "🐈", breed: "Tekir Kedi", gender: "Erkek (Kısır)", age: "2 Yaş", weight: "3.4 kg",
+                chip: "981098102938471", owner: "Mehmet Kaya", phone: "0544 222 33 44",
+                timeline: [{ date: "15.08.2026", type: "Operasyon", note: "Ovariohisterektomi", active: true }],
+                muayene: {
+                    date: "15.08.2026", vet: "Vet. Can Yılmaz", complaint: "Kısırlaştırma Operasyonu",
+                    vitals: { temp: "38.6 °C", pulse: "135 bpm", resp: "30 /dk", weight: "3.4 kg", bp: "115/75", spo2: "%98" },
+                    notes: "Steril şartlarda tamamlandı.", procedure: "Ovariohisterektomi", conclusion: "İyileşme sürecinde."
+                },
+                rx: { name: "Meloksikam Ağrı Kesici", usage: "Günde 1 kez oral", note: "Mamaya damlatılarak verilecek." },
+                reports: [
+                    { type: "Biyokimya Paneli", date: "14.08.2026", doctor: "Vet. Can Yılmaz", status: "Normal", isWarning: false, notes: "Anesteziye uygun.", fileName: "Duman_Biyo.pdf" }
+                ]
+            },
+            "p3": {
+                name: "Max", emoji: "🐕", breed: "Terrier", gender: "Erkek", age: "5 Yaş", weight: "7.2 kg",
+                chip: "981098107774120", owner: "Selin Şen", phone: "0533 888 99 00",
+                timeline: [{ date: "10.07.2026", type: "Muayene", note: "Kulak Kaşıntısı", active: true }],
+                muayene: null, rx: null, reports: []
+            }
+        };
+
+        // 2. KAFESLER VERİSİ
+        const cagesData = [
+            { code: "KAFES 01", isOccupied: true, patientName: "Duman", patientType: "Tekir", reason: "Yoğun Bakım", badgeClass: "bg-rose-100 text-rose-700", borderClass: "border-rose-200 bg-rose-50/40", temp: "38.6 °C", ivStatus: "Serum Aktif", notes: "Post-op uyanma stabil" },
+            { code: "KAFES 02", isOccupied: true, patientName: "Max", patientType: "Terrier", reason: "Gözlem", badgeClass: "bg-amber-100 text-amber-700", borderClass: "border-amber-200 bg-amber-50/40", temp: "38.8 °C", ivStatus: "İntraket Takılı", notes: "Kulak tedavisi devam ediyor" },
+            { code: "KAFES 03", isOccupied: false }, { code: "KAFES 04", isOccupied: false }, { code: "KAFES 05", isOccupied: false }, { code: "KAFES 06", isOccupied: false }
+        ];
+
+        // 3. RANDEVULAR VE PLANLAR
+        const appointmentsDB = [
+            { id: 1, date: "2026-09-17", time: "10:30", patient: "Luna", breed: "Golden", owner: "Ahmet Yılmaz", type: "Rutin Muayene", isDone: true },
+            { id: 2, date: "2026-09-17", time: "14:00", patient: "Duman", breed: "Tekir", owner: "Mehmet Kaya", type: "Pansuman Kontrolü", isDone: false },
+            { id: 3, date: "2026-09-17", time: "16:30", patient: "Max", breed: "Terrier", owner: "Selin Şen", type: "Kulak Muayenesi", isDone: false },
+            { id: 4, date: "2026-09-18", time: "11:00", patient: "Luna", breed: "Golden", owner: "Ahmet Yılmaz", type: "Genel Check-up", isDone: false },
+            { id: 5, date: "2026-09-19", time: "15:00", patient: "Duman", breed: "Tekir", owner: "Mehmet Kaya", type: "Aşı Tekrarı", isDone: false },
+            { id: 6, date: "2026-09-22", time: "13:30", patient: "Max", breed: "Terrier", owner: "Selin Şen", type: "Tırnak Bakımı", isDone: false }
+        ];
+
+        const futurePlansDB = [
+            { id: 101, date: "2026-09-17", type: "Post-Op Dikiş Alma", patient: "Duman", owner: "Mehmet Kaya", phone: "0544 222 33 44" },
+            { id: 102, date: "2026-09-21", type: "Kuduz Aşısı Tekrarı", patient: "Luna", owner: "Ahmet Yılmaz", phone: "0532 555 12 34" },
+            { id: 103, date: "2026-09-25", type: "İç & Dış Parazit", patient: "Max", owner: "Selin Şen", phone: "0533 888 99 00" }
+        ];
+
+        // 4. PERSONEL VE VARDİYA VERİTABANI
+        const staffDB = [
+            {
+                id: "stf_1", name: "Vet. Selin Kaya", role: "Yönetici Hekim / Cerrah", phone: "0532 100 20 30", leaveBalance: 12, currentStatus: "Gündüz (09-18)", status: "active",
+                shifts: { "d0": "Gündüz", "d1": "Gündüz", "d2": "Gündüz", "d3": "Gündüz", "d4": "Gündüz", "d5": "İzinli", "d6": "İzinli" }
+            },
+            {
+                id: "stf_2", name: "Vet. Can Yılmaz", role: "Nöbetçi Hekim", phone: "0544 200 30 40", leaveBalance: 9, currentStatus: "Gece Nöbeti (18-09)", status: "active",
+                shifts: { "d0": "İzinli", "d1": "Gece", "d2": "Gece", "d3": "Gece", "d4": "İzinli", "d5": "Gece", "d6": "Gece" }
+            },
+            {
+                id: "stf_3", name: "Tekniker Murat Er", role: "Veteriner Sağlık Teknikeri", phone: "0555 300 40 50", leaveBalance: 5, currentStatus: "Yıllık İzinli", status: "active",
+                shifts: { "d0": "Gündüz", "d1": "Gündüz", "d2": "İzinli", "d3": "İzinli", "d4": "İzinli", "d5": "Gündüz", "d6": "Gündüz" }
+            },
+            {
+                id: "stf_4", name: "Zeynep Çelik", role: "Klinik Karşılama / Danışma", phone: "0530 400 50 60", leaveBalance: 14, currentStatus: "Gündüz (09-18)", status: "active",
+                shifts: { "d0": "Gündüz", "d1": "Gündüz", "d2": "Gündüz", "d3": "Gündüz", "d4": "Gündüz", "d5": "İzinli", "d6": "İzinli" }
+            },
+            {
+                id: "stf_5", name: "Vet. Mehmet Demir", role: "Eski Hekim (Ayrıldı)", phone: "0536 999 88 77", leaveBalance: 0, currentStatus: "İşten Ayrıldı", status: "inactive",
+                shifts: { "d0": "İzinli", "d1": "İzinli", "d2": "İzinli", "d3": "İzinli", "d4": "İzinli", "d5": "İzinli", "d6": "İzinli" }
+            }
+        ];
+
+        const leaveHistoryDB = [
+            { id: 1, staffId: "stf_3", staffName: "Tekniker Murat Er", type: "Yıllık İzin", days: 3, dates: "16 Eyl - 19 Eyl 2026", status: "Aktif İzin" },
+            { id: 2, staffId: "stf_2", staffName: "Vet. Can Yılmaz", type: "Mazeret İzni", days: 1, dates: "02 Eyl 2026", status: "Tamamlandı" },
+            { id: 3, staffId: "stf_5", staffName: "Vet. Mehmet Demir", type: "Yıllık İzin", days: 5, dates: "10 Haz - 15 Haz 2026", status: "Arşiv İzin" }
+        ];
+
+        let currentActiveKey = null;
+        let selectedCageCode = null;
+        let currentCalendarView = 'daily';
+        let staffStatusFilter = "active";
+        let staffTextSearchQuery = "";
+        let selectedStaffFilterId = "all";
+        let currentShiftView = 'weekly';
+        let selectedShiftStaffId = null;
+        let selectedShiftDayKey = null;
+
+        window.onload = function() {
+            resetToPatientHome();
+            renderCages();
+            renderSurgeryHistoryTable();
+            renderAllCalendarViews();
+            renderStaffModule();
+            populateAllDropdowns();
+
+            document.addEventListener('click', function(e) {
+                const searchBox = document.getElementById('globalPatientSearch');
+                const dropdown = document.getElementById('searchResultsDropdown');
+                if (searchBox && dropdown && !searchBox.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.classList.add('hidden');
+                }
+            });
+        };
+
+        // ================= 1. MODÜL: HASTA KARTI FONKSİYONLARI =================
+        function resetToPatientHome() {
+            currentActiveKey = null;
+            document.getElementById('patientDetailsActiveView').classList.add('hidden');
+            document.getElementById('patientHomeEmptyView').classList.remove('hidden');
+            clearSearch();
+        }
+
+        function switchPatient(key) {
+            currentActiveKey = key;
+            document.getElementById('patientHomeEmptyView').classList.add('hidden');
+            document.getElementById('patientDetailsActiveView').classList.remove('hidden');
+            renderActivePatientData(key);
+        }
+
+        function renderActivePatientData(key) {
+            const p = patientDatabase[key];
+            if (!p) return;
+
+            document.getElementById('activePetEmoji').innerText = p.emoji;
+            document.getElementById('activePetName').innerText = p.name;
+            document.getElementById('activePetBreed').innerText = p.breed;
+            document.getElementById('activePetGenderAge').innerText = `${p.gender || 'Dişi'} • ${p.age || 'Bilinmiyor'}`;
+            document.getElementById('activePetWeight').innerText = p.weight || '-';
+            document.getElementById('activePetChip').innerText = p.chip || '-';
+            document.getElementById('activeOwnerName').innerText = p.owner || '-';
+            document.getElementById('activeOwnerPhone').innerText = p.phone || '-';
+
+            document.getElementById('timelinePetName').innerText = p.name;
+            document.getElementById('reportPetName').innerText = p.name;
+            document.getElementById('rxPetName').innerText = p.name;
+
+            // Zaman Çizelgesi
+            const tContainer = document.getElementById('timelineContainer');
+            tContainer.innerHTML = "";
+            if (p.timeline && p.timeline.length > 0) {
+                p.timeline.forEach(t => {
+                    const box = document.createElement('div');
+                    box.className = t.active ? "p-2 rounded-xl border-2 border-emerald-500 bg-emerald-50/70 shadow-sm" : "p-2 rounded-xl border border-slate-200 bg-slate-50";
+                    box.innerHTML = `
+                        <span class="text-[9px] ${t.active ? 'font-bold text-emerald-800' : 'text-slate-400'} block">${t.date}</span>
+                        <span class="font-black text-slate-800 text-xs mt-0.5 block">${t.type}</span>
+                        <span class="text-[10px] ${t.active ? 'text-emerald-700 font-medium' : 'text-slate-500'}">${t.note}</span>
+                    `;
+                    tContainer.appendChild(box);
+                });
+            } else {
+                tContainer.innerHTML = '<div class="col-span-4 p-3 bg-slate-50 text-slate-400 rounded-xl text-center text-xs">Kayıt bulunmuyor.</div>';
+            }
+
+            // Raporlar
+            const rContainer = document.getElementById('reportsListContainer');
+            rContainer.innerHTML = "";
+            if (p.reports && p.reports.length > 0) {
+                p.reports.forEach((rep) => {
+                    const rCard = document.createElement('div');
+                    rCard.className = "p-3 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between";
+                    rCard.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg ${rep.isWarning ? 'bg-rose-100 text-rose-700' : 'bg-purple-100 text-purple-700'} flex items-center justify-center text-xs font-bold shrink-0">
+                                <i class="fa-solid fa-file-medical"></i>
+                            </div>
+                            <div>
+                                <h5 class="text-xs font-bold text-slate-800">${rep.type} <span class="text-[10px] font-normal text-slate-400">(${rep.date})</span></h5>
+                                <p class="text-[11px] text-slate-600">${rep.status} • <span class="font-mono text-purple-700 font-semibold">${rep.fileName}</span></p>
+                            </div>
+                        </div>
+                        <button onclick="alert('${rep.type} rapor içeriği:\\n\\n' + '${rep.notes}')" class="text-xs bg-white text-purple-700 border border-purple-200 px-2.5 py-1 rounded font-bold">Görüntüle</button>
+                    `;
+                    rContainer.appendChild(rCard);
+                });
+            } else {
+                rContainer.innerHTML = '<div class="p-3 bg-slate-50 text-slate-400 rounded-xl text-center text-xs">Bu hasta için henüz yüklenmiş bir rapor bulunmamaktadır.</div>';
+            }
+
+            // Muayene / Cerrahi
+            if (p.muayene) {
+                document.getElementById('vTemp').innerText = p.muayene.vitals.temp;
+                document.getElementById('vPulse').innerText = p.muayene.vitals.pulse;
+                document.getElementById('vResp').innerText = p.muayene.vitals.resp;
+                document.getElementById('vWeight').innerText = p.muayene.vitals.weight;
+                document.getElementById('vBP').innerText = p.muayene.vitals.bp;
+                document.getElementById('vSpO2').innerText = p.muayene.vitals.spo2;
+                document.getElementById('mSurgNotes').innerText = p.muayene.notes;
+            } else {
+                document.getElementById('vTemp').innerText = "-";
+                document.getElementById('vPulse').innerText = "-";
+                document.getElementById('vResp').innerText = "-";
+                document.getElementById('vWeight').innerText = p.weight || "-";
+                document.getElementById('vBP').innerText = "-";
+                document.getElementById('vSpO2').innerText = "-";
+                document.getElementById('mSurgNotes').innerText = "Bu hasta için henüz operasyon veya cerrahi müdahale girilmedi.";
+            }
+
+            // Reçete
+            const rxBox = document.getElementById('rxContainer');
+            if (p.rx) {
+                rxBox.innerHTML = `
+                    <div class="flex items-center gap-2 mb-1"><i class="fa-solid fa-capsules text-emerald-700"></i><span class="font-bold text-slate-800 text-xs">${p.rx.name}</span></div>
+                    <p class="text-[11px] text-slate-600">${p.rx.usage}</p>
+                    <p class="text-[10px] text-amber-700 bg-amber-50 p-1.5 rounded border border-amber-200 mt-1.5"><strong>Not:</strong> ${p.rx.note}</p>
+                `;
+            } else {
+                rxBox.innerHTML = "Bu hasta için aktif bir reçete bulunmuyor.";
+            }
+        }
+
+        function handleGlobalSearch(query) {
+            const dropdown = document.getElementById('searchResultsDropdown');
+            const clearBtn = document.getElementById('clearSearchBtn');
+            const q = query.trim().toLowerCase();
+
+            if (q.length > 0) clearBtn.classList.remove('hidden');
+            else clearBtn.classList.add('hidden');
+
+            const results = [];
+            for (const [key, p] of Object.entries(patientDatabase)) {
+                const matchName = p.name.toLowerCase().includes(q);
+                const matchOwner = p.owner.toLowerCase().includes(q);
+                const matchPhone = p.phone.replace(/\s+/g, '').includes(q.replace(/\s+/g, ''));
+                const matchChip = p.chip.toLowerCase().includes(q);
+                if (matchName || matchOwner || matchPhone || matchChip) results.push({ key, ...p });
+            }
+
+            dropdown.innerHTML = "";
+            if (results.length === 0) {
+                dropdown.innerHTML = `<div class="p-3 text-center text-xs text-slate-400">"${query}" ile eşleşen hasta bulunamadı.</div>`;
+            } else {
+                results.forEach(r => {
+                    const item = document.createElement('div');
+                    item.className = "p-2 hover:bg-emerald-50 rounded-lg cursor-pointer transition border-b border-slate-100 last:border-0 flex items-center justify-between";
+                    item.onclick = function() {
+                        switchPatient(r.key);
+                        dropdown.classList.add('hidden');
+                        document.getElementById('globalPatientSearch').value = `${r.name} (${r.owner})`;
+                    };
+                    item.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <span class="text-base">${r.emoji}</span>
+                            <div>
+                                <h5 class="text-xs font-bold text-slate-800">${r.name} <span class="font-normal text-slate-400">(${r.breed})</span></h5>
+                                <p class="text-[10px] text-slate-500">${r.owner} • ${r.phone}</p>
+                            </div>
+                        </div>
+                        <span class="text-[10px] text-emerald-700 font-bold">Aç →</span>
+                    `;
+                    dropdown.appendChild(item);
+                });
+            }
+            dropdown.classList.remove('hidden');
+        }
+
+        function clearSearch() {
+            document.getElementById('globalPatientSearch').value = "";
+            document.getElementById('clearSearchBtn').classList.add('hidden');
+            document.getElementById('searchResultsDropdown').classList.add('hidden');
+        }
+
+        // ================= 2. MODÜL: OPERASYON & KAFESLER =================
+        function renderCages() {
+            const container = document.getElementById('cagesContainer');
+            if (!container) return;
+            container.innerHTML = "";
+            let occupied = 0;
+
+            cagesData.forEach(cage => {
+                const card = document.createElement('div');
+                if (cage.isOccupied) {
+                    occupied++;
+                    card.className = `border-2 ${cage.borderClass} p-3.5 rounded-xl relative shadow-sm`;
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start mb-1.5">
+                            <span class="text-xs font-bold text-slate-400">${cage.code}</span>
+                            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded ${cage.badgeClass}">${cage.reason}</span>
+                        </div>
+                        <h4 class="font-bold text-slate-800 text-xs">${cage.patientName} (${cage.patientType})</h4>
+                        <p class="text-[11px] text-slate-500 mt-0.5">${cage.temp} • ${cage.ivStatus}</p>
+                        <div class="mt-2.5 pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs">
+                            <button onclick="openCageTreatmentModal('${cage.code}', '${cage.patientName}')" class="text-emerald-700 font-bold">Tedavi Gir</button>
+                            <button onclick="dischargePatientFromCage('${cage.code}')" class="text-slate-400 hover:text-rose-600">Taburcu Et</button>
+                        </div>
+                    `;
+                } else {
+                    card.className = "border-2 border-dashed border-slate-200 bg-slate-50/50 p-3.5 rounded-xl text-center flex flex-col items-center justify-center min-h-[120px]";
+                    card.innerHTML = `
+                        <span class="text-xs font-bold text-slate-400">${cage.code} (Müsait)</span>
+                        <button onclick="openAdmitModal('${cage.code}')" class="mt-2 text-xs bg-slate-200 hover:bg-emerald-600 hover:text-white text-slate-700 px-3 py-1 rounded-lg font-bold">Hasta Yatır</button>
+                    `;
+                }
+                container.appendChild(card);
+            });
+            document.getElementById('statCageRatio').innerText = `${occupied} / ${cagesData.length} Kafes`;
+            document.getElementById('badgeInpatientCount').innerText = `${occupied} Dolu`;
+        }
+
+        function openCageTreatmentModal(code, name) {
+            selectedCageCode = code;
+            document.getElementById('cageModalTitle').innerText = `${name} (${code})`;
+            document.getElementById('modalCageTreatment').classList.remove('hidden');
+        }
+        function closeCageTreatmentModal() { document.getElementById('modalCageTreatment').classList.add('hidden'); }
+
+        function handleSaveCageTreatment(e) {
+            e.preventDefault();
+            const cage = cagesData.find(c => c.code === selectedCageCode);
+            if (cage) {
+                cage.temp = document.getElementById('cageTemp').value;
+                cage.ivStatus = document.getElementById('cageIvStatus').value;
+            }
+            closeCageTreatmentModal();
+            renderCages();
+            alert(`Tedavi işlendi!`);
+        }
+
+        function openAdmitModal(code) {
+            selectedCageCode = code;
+            document.getElementById('admitModalCageCode').innerText = code;
+            document.getElementById('modalAdmitPatient').classList.remove('hidden');
+        }
+        function closeAdmitModal() { document.getElementById('modalAdmitPatient').classList.add('hidden'); }
+
+        function handleSaveAdmitPatient(e) {
+            e.preventDefault();
+            const p = patientDatabase[document.getElementById('admitSelectPatient').value];
+            const cage = cagesData.find(c => c.code === selectedCageCode);
+            if (cage) {
+                cage.isOccupied = true;
+                cage.patientName = p.name;
+                cage.patientType = p.breed;
+                cage.reason = document.getElementById('admitReason').value;
+                cage.badgeClass = "bg-rose-100 text-rose-700";
+                cage.borderClass = "border-rose-200 bg-rose-50/40";
+                cage.temp = "38.5 °C";
+                cage.ivStatus = "Serum Aktif";
+            }
+            closeAdmitModal();
+            renderCages();
+            alert(`${p.name} kafese kabul edildi!`);
+        }
+
+        function dischargePatientFromCage(code) {
+            if (confirm(`${code} nolu kafesteki hasta taburcu edilsin mi?`)) {
+                const cage = cagesData.find(c => c.code === code);
+                if (cage) cage.isOccupied = false;
+                renderCages();
+            }
+        }
+
+        function renderSurgeryHistoryTable() {
+            const tbody = document.getElementById('surgeryHistoryTable');
+            if (!tbody) return;
+            tbody.innerHTML = `
+                <tr class="hover:bg-slate-50 transition">
+                    <td class="px-5 py-3 font-semibold text-slate-800">Duman <span class="block text-slate-400 text-[10px]">Mehmet Kaya</span></td>
+                    <td class="px-5 py-3 font-bold text-emerald-800">Ovariohisterektomi (Dişi Kısırlaştırma)</td>
+                    <td class="px-5 py-3">Vet. Hekim Can Yılmaz</td>
+                    <td class="px-5 py-3 font-mono text-[11px]">15.08.2026</td>
+                    <td class="px-5 py-3"><span class="px-2 py-1 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded">Tamamlandı</span></td>
+                </tr>
+            `;
+        }
+
+        function handleExecuteSurgery(e) {
+            e.preventDefault();
+            const pKey = document.getElementById('opSelectPatient').value;
+            const targetPatient = patientDatabase[pKey];
+            const opName = document.getElementById('opSelectSurgeryType').value;
+            const opVet = document.getElementById('opSelectVet').value;
+            const today = new Date().toLocaleDateString('tr-TR');
+
+            targetPatient.timeline.unshift({ date: today, type: "Operasyon", note: opName, active: true });
+            targetPatient.muayene = {
+                date: today, vet: opVet, complaint: "Cerrahi: " + opName,
+                vitals: { temp: "38.7 °C", pulse: "120 bpm", resp: "26 /dk", weight: targetPatient.weight, bp: "120/80", spo2: "%98" },
+                notes: "Operasyon başarıyla tamamlandı.", procedure: opName, conclusion: "Başarılı operasyon."
+            };
+
+            closeSurgeryModal();
+            switchTab('tab-patients', document.querySelectorAll('.nav-btn')[0]);
+            switchPatient(pKey);
+            alert(`Operasyon kaydedildi ve ${targetPatient.name} dosyasında güncellendi!`);
+        }
+
+        // ================= 3. MODÜL: RANDEVULAR =================
+        function setCalendarView(viewMode) {
+            currentCalendarView = viewMode;
+            document.getElementById('viewContainerDaily').classList.toggle('hidden', viewMode !== 'daily');
+            document.getElementById('viewContainerWeekly').classList.toggle('hidden', viewMode !== 'weekly');
+            document.getElementById('viewContainerMonthly').classList.toggle('hidden', viewMode !== 'monthly');
+
+            const buttons = {
+                'daily': document.getElementById('btnViewDaily'),
+                'weekly': document.getElementById('btnViewWeekly'),
+                'monthly': document.getElementById('btnViewMonthly')
+            };
+
+            for (const [key, btn] of Object.entries(buttons)) {
+                if (btn) {
+                    btn.className = (key === viewMode)
+                        ? "px-3 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition"
+                        : "px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-800 transition";
+                }
+            }
+
+            renderAllCalendarViews();
+        }
+
+        function renderAllCalendarViews() {
+            renderDailyView();
+            renderWeeklyView();
+            renderMonthlyView();
+            document.getElementById('badgeApptCount').innerText = appointmentsDB.length;
+        }
+
+        function renderDailyView() {
+            const todayStr = "2026-09-17";
+            const aptList = document.getElementById('dailyAppointmentsList');
+            if (!aptList) return;
+            aptList.innerHTML = "";
+
+            const todaysAppointments = appointmentsDB.filter(a => a.date === todayStr);
+
+            if (todaysAppointments.length === 0) {
+                aptList.innerHTML = '<div class="p-4 bg-slate-50 text-slate-400 text-center rounded-xl text-xs">Bugün için randevu bulunmuyor.</div>';
+            } else {
+                todaysAppointments.forEach(apt => {
+                    const item = document.createElement('div');
+                    item.className = `p-3 rounded-xl border flex items-center justify-between ${apt.isDone ? 'bg-slate-50 border-slate-200' : 'bg-white border-slate-200 shadow-sm'}`;
+                    item.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="text-center font-bold px-2.5 py-1 bg-slate-100 rounded-lg shrink-0">
+                                <span class="text-[9px] text-slate-400 block">SAAT</span>
+                                <span class="text-xs ${apt.isDone ? 'text-slate-500' : 'text-emerald-800 font-black'}">${apt.time}</span>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-800 text-xs">${apt.patient} <span class="font-normal text-slate-400">(${apt.breed})</span></h4>
+                                <p class="text-[10px] text-slate-500">${apt.type} • Sahip: ${apt.owner}</p>
+                            </div>
+                        </div>
+                        <div>
+                            ${apt.isDone 
+                                ? '<span class="px-2 py-1 bg-emerald-100 text-emerald-800 text-[10px] font-bold rounded">Tamamlandı</span>' 
+                                : `<button onclick="completeAppointment(${apt.id})" class="text-[11px] bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-2.5 py-1 rounded-lg shadow-sm">Muayeneye Al</button>`}
+                        </div>
+                    `;
+                    aptList.appendChild(item);
+                });
+            }
+
+            const planList = document.getElementById('dailyFuturePlansList');
+            if (!planList) return;
+            planList.innerHTML = "";
+            futurePlansDB.forEach(p => {
+                const item = document.createElement('div');
+                item.className = "p-3 bg-amber-50/60 border border-amber-200 rounded-xl flex items-center justify-between";
+                item.innerHTML = `
+                    <div>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-800">${p.type}</span>
+                        <h5 class="text-xs font-bold text-slate-800 mt-1">${p.patient} • <span class="font-mono text-slate-500 font-normal">${p.date}</span></h5>
+                        <span class="text-[10px] text-slate-400">${p.owner} (${p.phone})</span>
+                    </div>
+                    <button onclick="alert('WhatsApp Bildirimi Gönderildi:\\n\\nSayın ${p.owner}, ${p.patient} için ${p.date} tarihli ${p.type} planı bulunmaktadır.')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-2.5 py-1 rounded text-[10px]">
+                        <i class="fa-brands fa-whatsapp"></i> Hatırlat
+                    </button>
+                `;
+                planList.appendChild(item);
+            });
+        }
+
+        function renderWeeklyView() {
+            const grid = document.getElementById('weeklyColumnsGrid');
+            if (!grid) return;
+            grid.innerHTML = "";
+
+            const weekDays = [
+                { name: "Pazartesi", date: "2026-09-14", dayNum: "14" },
+                { name: "Salı", date: "2026-09-15", dayNum: "15" },
+                { name: "Çarşamba", date: "2026-09-16", dayNum: "16" },
+                { name: "Perşembe", date: "2026-09-17", dayNum: "17", isToday: true },
+                { name: "Cuma", date: "2026-09-18", dayNum: "18" },
+                { name: "Cumartesi", date: "2026-09-19", dayNum: "19" },
+                { name: "Pazar", date: "2026-09-20", dayNum: "20" }
+            ];
+
+            weekDays.forEach(day => {
+                const col = document.createElement('div');
+                col.className = `p-2.5 rounded-xl border flex flex-col justify-between min-h-[280px] ${day.isToday ? 'border-emerald-500 bg-emerald-50/30' : 'border-slate-200 bg-slate-50/50'}`;
+
+                const dayApts = appointmentsDB.filter(a => a.date === day.date);
+                let cardsHtml = "";
+                dayApts.forEach(a => {
+                    cardsHtml += `
+                        <div class="p-2 bg-white rounded-lg border border-slate-200 shadow-xs mb-1.5 text-left">
+                            <span class="text-[9px] font-bold text-emerald-800 bg-emerald-50 px-1 rounded block w-max">${a.time}</span>
+                            <span class="font-bold text-slate-800 text-[11px] block mt-0.5 truncate">${a.patient}</span>
+                            <span class="text-[9px] text-slate-500 block truncate">${a.type}</span>
+                        </div>
+                    `;
+                });
+
+                if (dayApts.length === 0) cardsHtml = '<span class="text-[10px] text-slate-400 block py-4 text-center">Boş</span>';
+
+                col.innerHTML = `
+                    <div>
+                        <div class="text-center pb-2 border-b border-slate-200/70 mb-2">
+                            <span class="text-[10px] font-bold uppercase ${day.isToday ? 'text-emerald-700' : 'text-slate-400'} block">${day.name}</span>
+                            <span class="text-base font-black ${day.isToday ? 'text-emerald-800' : 'text-slate-700'}">${day.dayNum}</span>
+                        </div>
+                        <div>${cardsHtml}</div>
+                    </div>
+                    <button onclick="document.getElementById('apptDate').value='${day.date}'; openNewAppointmentModalGlobal();" class="w-full mt-2 text-[10px] font-bold text-slate-500 hover:text-emerald-700 hover:bg-white p-1 rounded transition border border-dashed border-slate-300">+ Ekle</button>
+                `;
+                grid.appendChild(col);
+            });
+        }
+
+        function renderMonthlyView() {
+            const grid = document.getElementById('monthlyDaysGrid');
+            if (!grid) return;
+            grid.innerHTML = "";
+
+            const emptyDaysBefore = 1;
+            for (let i = 0; i < emptyDaysBefore; i++) {
+                grid.appendChild(document.createElement('div')).className = "min-h-[70px] bg-slate-50/40 rounded-lg border border-slate-100";
+            }
+
+            for (let day = 1; day <= 30; day++) {
+                const dayStr = day < 10 ? `0${day}` : `${day}`;
+                const fullDate = `2026-09-${dayStr}`;
+                const isToday = (day === 17);
+                const countApt = appointmentsDB.filter(a => a.date === fullDate).length;
+
+                const cell = document.createElement('div');
+                cell.className = `p-1.5 min-h-[70px] rounded-lg border flex flex-col justify-between text-left transition ${isToday ? 'border-emerald-500 bg-emerald-50/40' : 'border-slate-200 bg-white'}`;
+                cell.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="text-[11px] font-bold ${isToday ? 'text-emerald-800' : 'text-slate-600'}">${day}</span>
+                        ${isToday ? '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>' : ''}
+                    </div>
+                    <div>${countApt > 0 ? `<span class="text-[9px] bg-emerald-100 text-emerald-800 font-bold px-1 rounded block truncate">${countApt} Randevu</span>` : ''}</div>
+                    <button onclick="document.getElementById('apptDate').value='${fullDate}'; openNewAppointmentModalGlobal();" class="text-[9px] text-slate-400 hover:text-emerald-700 text-right block w-full">+</button>
+                `;
+                grid.appendChild(cell);
+            }
+        }
+
+        function completeAppointment(id) {
+            const apt = appointmentsDB.find(a => a.id === id);
+            if (apt) { apt.isDone = true; renderAllCalendarViews(); }
+        }
+
+        function handleSaveNewAppointment(e) {
+            e.preventDefault();
+            const p = patientDatabase[document.getElementById('apptPatientSelect').value];
+            appointmentsDB.push({
+                id: Date.now(),
+                date: document.getElementById('apptDate').value,
+                time: document.getElementById('apptTime').value,
+                patient: p.name, breed: p.breed, owner: p.owner,
+                type: document.getElementById('apptType').value, isDone: false
+            });
+            appointmentsDB.sort((a,b) => a.time.localeCompare(b.time));
+            closeNewAppointmentModal();
+            renderAllCalendarViews();
+            alert(`Randevu takvime eklendi!`);
+        }
+
+        // ================= 5. MODÜL: VARDİYA & İZİN MOTORU =================
+        function setStaffStatusFilter(filterMode) {
+            staffStatusFilter = filterMode;
+
+            document.getElementById('btnStatusActive').className = (filterMode === 'active')
+                ? "px-3 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition"
+                : "px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-800 transition";
+
+            document.getElementById('btnStatusInactive').className = (filterMode === 'inactive')
+                ? "px-3 py-1.5 rounded-lg bg-slate-800 text-white shadow-sm transition"
+                : "px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-800 transition";
+
+            document.getElementById('btnStatusAll').className = (filterMode === 'all')
+                ? "px-2.5 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition"
+                : "px-2.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-800 transition";
+
+            selectedStaffFilterId = "all";
+            document.getElementById('filterBannerContainer').classList.add('hidden');
+            populateStaffDropdowns();
+            renderStaffModule();
+        }
+
+        function handleStaffTextSearch(val) {
+            staffTextSearchQuery = val.trim().toLowerCase();
+            renderStaffModule();
+        }
+
+        function handleStaffFilterChange(selectedId) {
+            selectedStaffFilterId = selectedId;
+            const banner = document.getElementById('filterBannerContainer');
+            
+            if (selectedId === "all") {
+                banner.classList.add('hidden');
+            } else {
+                const staff = staffDB.find(s => s.id === selectedId);
+                if (staff) {
+                    document.getElementById('filterBannerName').innerText = `${staff.name} ${staff.status === 'inactive' ? '(İşten Ayrıldı)' : ''}`;
+                    banner.classList.remove('hidden');
+                }
+            }
+            renderStaffModule();
+        }
+
+        function resetStaffFilter() {
+            selectedStaffFilterId = "all";
+            staffTextSearchQuery = "";
+            document.getElementById('staffSearchQueryInput').value = "";
+            document.getElementById('staffFilterSelect').value = "all";
+            document.getElementById('filterBannerContainer').classList.add('hidden');
+            renderStaffModule();
+        }
+
+        function getFilteredStaffList() {
+            let list = staffDB;
+            if (staffStatusFilter === 'active') list = list.filter(s => s.status === 'active');
+            else if (staffStatusFilter === 'inactive') list = list.filter(s => s.status === 'inactive');
+
+            if (selectedStaffFilterId !== 'all') list = list.filter(s => s.id === selectedStaffFilterId);
+
+            if (staffTextSearchQuery.length > 0) {
+                list = list.filter(s => 
+                    s.name.toLowerCase().includes(staffTextSearchQuery) ||
+                    s.role.toLowerCase().includes(staffTextSearchQuery) ||
+                    s.phone.includes(staffTextSearchQuery)
+                );
+            }
+            return list;
+        }
+
+        function renderStaffModule() {
+            renderStaffCards();
+            renderShiftMatrix();
+            renderShiftMonthlyGrid();
+            renderLeaveHistory();
+
+            const activeCount = staffDB.filter(s => s.status === 'active').length;
+            const inactiveCount = staffDB.filter(s => s.status === 'inactive').length;
+            document.getElementById('countStatusActive').innerText = activeCount;
+            document.getElementById('countStatusInactive').innerText = inactiveCount;
+            document.getElementById('badgeStaffCount').innerText = `${activeCount} Aktif`;
+        }
+
+        function renderStaffCards() {
+            const container = document.getElementById('staffCardsContainer');
+            if (!container) return;
+            container.innerHTML = "";
+
+            const targetStaffList = getFilteredStaffList();
+
+            if (targetStaffList.length === 0) {
+                container.innerHTML = '<div class="col-span-2 p-6 bg-slate-50 text-slate-400 text-center rounded-xl text-xs">Aradığınız kriterlere uygun personel bulunamadı.</div>';
+                return;
+            }
+
+            targetStaffList.forEach(staff => {
+                const isInactive = (staff.status === 'inactive');
+                const card = document.createElement('div');
+                card.className = `p-3.5 rounded-xl border transition space-y-2 ${
+                    isInactive ? 'bg-slate-100/70 border-slate-300 opacity-75' : 'bg-slate-50 border-slate-200 hover:border-emerald-300'
+                }`;
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded-lg ${isInactive ? 'bg-slate-300 text-slate-600' : 'bg-emerald-100 text-emerald-800'} flex items-center justify-center font-bold text-xs">
+                                <i class="fa-solid ${isInactive ? 'fa-user-slash' : 'fa-user-doctor'}"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-xs text-slate-800">${staff.name} ${isInactive ? '<span class="text-[9px] bg-slate-200 text-slate-600 px-1 rounded font-normal">Ayrıldı</span>' : ''}</h4>
+                                <span class="text-[10px] text-slate-500">${staff.role}</span>
+                            </div>
+                        </div>
+                        <div>
+                            ${isInactive 
+                                ? `<button onclick="reactivateStaffMember('${staff.id}')" title="Tekrar Kadroya Al" class="text-xs bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold px-2 py-0.5 rounded">Geri Al</button>`
+                                : `<button onclick="deactivateStaffMember('${staff.id}', '${staff.name}')" title="İşten Çıkar" class="text-slate-300 hover:text-rose-600 text-xs p-1"><i class="fa-solid fa-user-minus"></i></button>`
+                            }
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-[11px]">
+                        <div class="bg-white p-1.5 rounded border"><span class="text-[9px] text-slate-400 block font-semibold">DURUM</span><span class="font-bold ${isInactive ? 'text-slate-500' : 'text-slate-700'}">${staff.currentStatus}</span></div>
+                        <div class="bg-white p-1.5 rounded border"><span class="text-[9px] text-slate-400 block font-semibold">KALAN İZİN</span><span class="font-black ${isInactive ? 'text-slate-400' : 'text-emerald-700'}">${staff.leaveBalance} Gün</span></div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function renderShiftMatrix() {
+            const tbody = document.getElementById('shiftMatrixBody');
+            if (!tbody) return;
+            tbody.innerHTML = "";
+            const days = ["d0", "d1", "d2", "d3", "d4", "d5", "d6"];
+
+            const targetStaffList = getFilteredStaffList();
+
+            if (targetStaffList.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center text-slate-400 text-xs">Personel nöbeti bulunamadı.</td></tr>';
+                return;
+            }
+
+            targetStaffList.forEach(staff => {
+                const isInactive = (staff.status === 'inactive');
+                const tr = document.createElement('tr');
+                tr.className = isInactive ? "bg-slate-50/50 opacity-60" : "hover:bg-slate-50/60 transition";
+
+                let rowHtml = `
+                    <td class="p-3 font-bold text-slate-800 text-xs">
+                        <span class="block leading-tight">${staff.name} ${isInactive ? '<span class="text-[9px] font-normal text-slate-400">(Ayrıldı)</span>' : ''}</span>
+                        <span class="text-[10px] text-slate-400 font-normal">${staff.role}</span>
+                    </td>
+                `;
+
+                days.forEach((dayKey, idx) => {
+                    const shift = staff.shifts[dayKey] || (isInactive ? "İzinli" : "Gündüz");
+                    const isToday = (idx === 3);
+
+                    let badgeClass = "bg-emerald-100 text-emerald-800 border-emerald-200";
+                    let icon = "fa-sun";
+                    if (isInactive) { badgeClass = "bg-slate-100 text-slate-500 border-slate-200"; icon = "fa-ban"; }
+                    else if (shift === "Gece") { badgeClass = "bg-purple-100 text-purple-800 border-purple-200"; icon = "fa-moon"; }
+                    else if (shift === "İzinli") { badgeClass = "bg-blue-100 text-blue-800 border-blue-200"; icon = "fa-umbrella-beach"; }
+
+                    rowHtml += `
+                        <td class="p-2 text-center ${!isInactive ? 'cursor-pointer' : ''} ${isToday ? 'bg-emerald-50/40 border-x border-emerald-100' : ''}" ${!isInactive ? `onclick="openQuickShiftModal('${staff.id}', '${dayKey}', '${staff.name}', '${idx}')"` : ''}>
+                            <span class="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-md border ${badgeClass}">
+                                <i class="fa-solid ${icon} text-[9px]"></i> ${isInactive ? 'Pasif' : shift}
+                            </span>
+                        </td>
+                    `;
+                });
+
+                tr.innerHTML = rowHtml;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function renderLeaveHistory() {
+            const container = document.getElementById('leaveHistoryContainer');
+            if (!container) return;
+            container.innerHTML = "";
+
+            let targetLeaveList = leaveHistoryDB;
+
+            if (selectedStaffFilterId !== 'all') {
+                targetLeaveList = targetLeaveList.filter(l => l.staffId === selectedStaffFilterId);
+            } else if (staffTextSearchQuery.length > 0) {
+                targetLeaveList = targetLeaveList.filter(l => l.staffName.toLowerCase().includes(staffTextSearchQuery));
+            } else if (staffStatusFilter === 'active') {
+                const activeIds = staffDB.filter(s => s.status === 'active').map(s => s.id);
+                targetLeaveList = targetLeaveList.filter(l => activeIds.includes(l.staffId));
+            } else if (staffStatusFilter === 'inactive') {
+                const inactiveIds = staffDB.filter(s => s.status === 'inactive').map(s => s.id);
+                targetLeaveList = targetLeaveList.filter(l => inactiveIds.includes(l.staffId));
+            }
+
+            if (targetLeaveList.length === 0) {
+                container.innerHTML = '<div class="p-4 bg-slate-50 text-slate-400 text-center rounded-xl text-xs">İzin hareketi bulunamadı.</div>';
+                return;
+            }
+
+            targetLeaveList.forEach(l => {
+                const item = document.createElement('div');
+                item.className = "p-2.5 rounded-xl border border-slate-200 bg-slate-50 text-[11px] space-y-0.5";
+                item.innerHTML = `
+                    <div class="flex justify-between font-bold text-slate-800">
+                        <span>${l.staffName}</span>
+                        <span class="text-[9px] px-1.5 py-0.5 rounded ${l.status.includes('Aktif') ? 'bg-blue-100 text-blue-800' : 'bg-slate-200 text-slate-600'}">${l.status}</span>
+                    </div>
+                    <p class="text-slate-500">${l.type} (${l.days} Gün) • <span class="font-mono">${l.dates}</span></p>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function renderShiftMonthlyGrid() {
+            const grid = document.getElementById('monthlyShiftDaysGrid');
+            if (!grid) return;
+            grid.innerHTML = "";
+
+            const targetStaffList = getFilteredStaffList();
+
+            for (let i = 0; i < 1; i++) {
+                grid.appendChild(document.createElement('div')).className = "min-h-[70px] bg-slate-50/40 rounded-lg border";
+            }
+
+            for (let day = 1; day <= 30; day++) {
+                const isToday = (day === 17);
+                const cell = document.createElement('div');
+                cell.className = `p-1.5 min-h-[70px] rounded-lg border flex flex-col justify-between text-left ${isToday ? 'border-emerald-500 bg-emerald-50/40' : 'border-slate-200 bg-white'}`;
+                
+                let docLabel = "Nöbetçi Yok";
+                if (targetStaffList.length > 0) {
+                    const assignedStaff = targetStaffList[day % targetStaffList.length];
+                    docLabel = assignedStaff.name.split(" ")[1] || assignedStaff.name;
+                }
+
+                cell.innerHTML = `
+                    <div class="flex justify-between items-center"><span class="text-[11px] font-bold ${isToday ? 'text-emerald-800' : 'text-slate-600'}">${day}</span></div>
+                    <span class="text-[8px] bg-purple-100 text-purple-800 font-bold px-1 rounded block truncate"><i class="fa-solid fa-moon mr-0.5"></i>${docLabel}</span>
+                `;
+                grid.appendChild(cell);
+            }
+        }
+
+        function populateStaffDropdowns() {
+            const filterSel = document.getElementById('staffFilterSelect');
+            if (filterSel) {
+                let sourceList = staffDB;
+                if (staffStatusFilter === 'active') sourceList = staffDB.filter(s => s.status === 'active');
+                else if (staffStatusFilter === 'inactive') sourceList = staffDB.filter(s => s.status === 'inactive');
+
+                filterSel.innerHTML = `<option value="all">👥 ${staffStatusFilter === 'active' ? 'Aktif Kadro' : (staffStatusFilter === 'inactive' ? 'Ayrılan Personel' : 'Tüm Kadro')} (Genel)</option>`;
+                
+                sourceList.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s.id;
+                    opt.innerText = `${s.status === 'inactive' ? '⚪' : '👤'} ${s.name} ${s.status === 'inactive' ? '(Ayrıldı)' : ''}`;
+                    if (s.id === selectedStaffFilterId) opt.selected = true;
+                    filterSel.appendChild(opt);
+                });
+            }
+
+            const leaveSel = document.getElementById('leaveStaffSelect');
+            if (leaveSel) {
+                leaveSel.innerHTML = "";
+                staffDB.filter(s => s.status === 'active').forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s.id;
+                    opt.innerText = `${s.name} - Kalan İzin: ${s.leaveBalance} Gün`;
+                    leaveSel.appendChild(opt);
+                });
+            }
+        }
+
+        function openManageStaffModal() {
+            renderStaffManagementTable();
+            document.getElementById('modalManageStaff').classList.remove('hidden');
+        }
+        function closeManageStaffModal() {
+            document.getElementById('modalManageStaff').classList.add('hidden');
+        }
+
+        function renderStaffManagementTable() {
+            const tbody = document.getElementById('staffManagementTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = "";
+
+            staffDB.forEach(staff => {
+                const isInactive = (staff.status === 'inactive');
+                const tr = document.createElement('tr');
+                tr.className = isInactive ? "bg-slate-50/80 opacity-70" : "hover:bg-slate-50 transition";
+                tr.innerHTML = `
+                    <td class="p-3 font-bold text-slate-800">${staff.name}</td>
+                    <td class="p-3 text-slate-600">${staff.role}</td>
+                    <td class="p-3 text-slate-500 font-mono">${staff.phone}</td>
+                    <td class="p-3">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isInactive ? 'bg-slate-200 text-slate-600' : 'bg-emerald-100 text-emerald-800'}">
+                            ${isInactive ? 'İşten Ayrıldı' : 'Aktif Çalışan'}
+                        </span>
+                    </td>
+                    <td class="p-3 text-right">
+                        ${isInactive
+                            ? `<button onclick="reactivateStaffMember('${staff.id}')" class="text-emerald-700 hover:underline font-bold text-xs"><i class="fa-solid fa-rotate-left mr-1"></i>Kadroya Geri Al</button>`
+                            : `<button onclick="deactivateStaffMember('${staff.id}', '${staff.name}')" class="text-rose-600 hover:text-rose-800 font-bold text-xs"><i class="fa-solid fa-user-xmark mr-1"></i>İşten Çıkar</button>`
+                        }
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function deactivateStaffMember(staffId, staffName) {
+            if (confirm(`"${staffName}" isimli çalışanı işten ayrıldı olarak işaretlemek istiyor musunuz?`)) {
+                const staff = staffDB.find(s => s.id === staffId);
+                if (staff) {
+                    staff.status = "inactive";
+                    staff.currentStatus = "İşten Ayrıldı";
+                    renderStaffManagementTable();
+                    populateStaffDropdowns();
+                    renderStaffModule();
+                }
+            }
+        }
+
+        function reactivateStaffMember(staffId) {
+            const staff = staffDB.find(s => s.id === staffId);
+            if (staff) {
+                staff.status = "active";
+                staff.currentStatus = "Gündüz (09-18)";
+                renderStaffManagementTable();
+                populateStaffDropdowns();
+                renderStaffModule();
+                alert(`"${staff.name}" tekrar aktif kadroya dahil edildi!`);
+            }
+        }
+
+        function handleAddNewStaffFromModal(e) {
+            e.preventDefault();
+            const name = document.getElementById('stfNewName').value.trim();
+            const role = document.getElementById('stfNewRole').value;
+            const phone = document.getElementById('stfNewPhone').value.trim();
+            const leave = parseInt(document.getElementById('stfNewLeave').value) || 14;
+
+            staffDB.push({
+                id: "stf_" + Date.now(),
+                name: name, role: role, phone: phone, leaveBalance: leave,
+                currentStatus: "Gündüz (09-18)", status: "active",
+                shifts: { "d0": "Gündüz", "d1": "Gündüz", "d2": "Gündüz", "d3": "Gündüz", "d4": "Gündüz", "d5": "İzinli", "d6": "İzinli" }
+            });
+
+            document.getElementById('stfNewName').value = "";
+            document.getElementById('stfNewPhone').value = "";
+            renderStaffManagementTable();
+            populateStaffDropdowns();
+            renderStaffModule();
+            alert(`"${name}" personel kadrosuna eklendi!`);
+        }
+
+        function openQuickShiftModal(staffId, dayKey, staffName, dayIdx) {
+            selectedShiftStaffId = staffId;
+            selectedShiftDayKey = dayKey;
+            document.getElementById('quickShiftTargetText').innerHTML = `<strong>${staffName}</strong>`;
+            document.getElementById('modalQuickShift').classList.remove('hidden');
+        }
+        function closeQuickShiftModal() { document.getElementById('modalQuickShift').classList.add('hidden'); }
+
+        function applyShiftChange(newShift) {
+            const staff = staffDB.find(s => s.id === selectedShiftStaffId);
+            if (staff) {
+                staff.shifts[selectedShiftDayKey] = newShift;
+                if (selectedShiftDayKey === "d3") staff.currentStatus = newShift;
+            }
+            closeQuickShiftModal();
+            renderStaffModule();
+        }
+
+        function openLeaveRequestModal() { document.getElementById('modalLeaveRequest').classList.remove('hidden'); }
+        function closeLeaveRequestModal() { document.getElementById('modalLeaveRequest').classList.add('hidden'); }
+
+        function handleSaveLeaveRequest(e) {
+            e.preventDefault();
+            const staffId = document.getElementById('leaveStaffSelect').value;
+            const staff = staffDB.find(s => s.id === staffId);
+            const days = parseInt(document.getElementById('leaveDaysCount').value) || 1;
+            const type = document.getElementById('leaveType').value;
+
+            if (type === "Yıllık İzin") {
+                if (staff.leaveBalance < days) { alert("Yetersiz bakiye!"); return; }
+                staff.leaveBalance -= days;
+            }
+
+            staff.shifts["d3"] = "İzinli";
+            staff.currentStatus = "İzinli";
+
+            leaveHistoryDB.unshift({
+                id: Date.now(), staffId: staff.id, staffName: staff.name, type: type, days: days,
+                dates: `${document.getElementById('leaveStartDate').value} - ${document.getElementById('leaveEndDate').value}`, status: "Aktif İzin"
+            });
+
+            closeLeaveRequestModal();
+            renderStaffModule();
+            alert(`İzin kaydedildi! Kalan bakiye: ${staff.leaveBalance} gün.`);
+        }
+
+        function setShiftCalendarView(viewMode) {
+            currentShiftView = viewMode;
+            document.getElementById('shiftViewWeeklyContainer').classList.toggle('hidden', viewMode !== 'weekly');
+            document.getElementById('shiftViewMonthlyContainer').classList.toggle('hidden', viewMode !== 'monthly');
+
+            document.getElementById('btnShiftWeekly').className = (viewMode === 'weekly')
+                ? "px-3 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition"
+                : "px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-800 transition";
+
+            document.getElementById('btnShiftMonthly').className = (viewMode === 'monthly')
+                ? "px-3 py-1.5 rounded-lg bg-emerald-600 text-white shadow-sm transition"
+                : "px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-800 transition";
+
+            renderStaffModule();
+        }
+
+        // ================= GENEL MODAL VE FORM YARDIMCILARI =================
+        function populateAllDropdowns() {
+            populateStaffDropdowns();
+            const selects = [
+                document.getElementById('admitSelectPatient'),
+                document.getElementById('apptPatientSelect'),
+                document.getElementById('opSelectPatient')
+            ];
+            selects.forEach(sel => {
+                if (!sel) return;
+                sel.innerHTML = "";
+                for (const [key, p] of Object.entries(patientDatabase)) {
+                    const opt = document.createElement('option');
+                    opt.value = key; opt.innerText = `${p.emoji} ${p.name} - ${p.owner}`;
+                    sel.appendChild(opt);
+                }
+            });
+
+            if (document.getElementById('apptDate')) document.getElementById('apptDate').value = "2026-09-17";
+            if (document.getElementById('leaveStartDate')) document.getElementById('leaveStartDate').value = "2026-09-21";
+            if (document.getElementById('leaveEndDate')) document.getElementById('leaveEndDate').value = "2026-09-24";
+        }
+
+        function openNewPatientModal() { document.getElementById('modalNewPatient').classList.remove('hidden'); }
+        function closeNewPatientModal() { document.getElementById('modalNewPatient').classList.add('hidden'); }
+        function openSurgeryModal() { document.getElementById('modalSurgery').classList.remove('hidden'); }
+        function closeSurgeryModal() { document.getElementById('modalSurgery').classList.add('hidden'); }
+        function openNewAppointmentModalGlobal() { document.getElementById('modalNewAppointment').classList.remove('hidden'); }
+        function closeNewAppointmentModal() { document.getElementById('modalNewAppointment').classList.add('hidden'); }
+
+        function openPlanModalForCurrentPatient() {
+            if (!currentActiveKey) return;
+            document.getElementById('modalPlanPetName').innerText = patientDatabase[currentActiveKey].name;
+            document.getElementById('quickPlanDate').value = "2026-09-24";
+            document.getElementById('modalAddPlan').classList.remove('hidden');
+        }
+        function closePlanModal() { document.getElementById('modalAddPlan').classList.add('hidden'); }
+
+        function handleSavePlanForCurrentPatient(e) {
+            e.preventDefault();
+            const p = patientDatabase[currentActiveKey];
+            p.timeline.unshift({ date: document.getElementById('quickPlanDate').value, type: "Planlanan", note: document.getElementById('quickPlanType').value, active: false });
+            closePlanModal();
+            renderActivePatientData(currentActiveKey);
+            alert(`Plan takvime işlendi!`);
+        }
+
+        function openRxModalForCurrentPatient() {
+            if (!currentActiveKey) return;
+            document.getElementById('modalRxPetName').innerText = patientDatabase[currentActiveKey].name;
+            document.getElementById('modalAddRx').classList.remove('hidden');
+        }
+        function closeRxModal() { document.getElementById('modalAddRx').classList.add('hidden'); }
+
+        function handleSaveRxForCurrentPatient(e) {
+            e.preventDefault();
+            const p = patientDatabase[currentActiveKey];
+            p.rx = { name: document.getElementById('quickRxName').value, usage: document.getElementById('quickRxUsage').value, note: "Tok karnına veriniz." };
+            closeRxModal();
+            renderActivePatientData(currentActiveKey);
+            alert(`Reçete kaydedildi!`);
+        }
+
+        function openReportModalForCurrentPatient() {
+            if (!currentActiveKey) return;
+            document.getElementById('modalReportPetName').innerText = patientDatabase[currentActiveKey].name;
+            document.getElementById('repDate').value = "2026-09-17";
+            document.getElementById('modalAddReport').classList.remove('hidden');
+        }
+        function closeReportModal() { document.getElementById('modalAddReport').classList.add('hidden'); }
+
+        function handleSaveReportForCurrentPatient(e) {
+            e.preventDefault();
+            const p = patientDatabase[currentActiveKey];
+            if (!p.reports) p.reports = [];
+            p.reports.unshift({
+                type: document.getElementById('repType').value, date: document.getElementById('repDate').value,
+                doctor: "Vet. Selin Kaya", status: document.getElementById('repStatusSummary').value,
+                notes: document.getElementById('repNotes').value, fileName: `${p.name}_Rapor.pdf`
+            });
+            closeReportModal();
+            renderActivePatientData(currentActiveKey);
+            alert(`Rapor eklendi!`);
+        }
+
+        function goToSurgeryForCurrentPatient() {
+            if (!currentActiveKey) return;
+            openSurgeryModal();
+            document.getElementById('opSelectPatient').value = currentActiveKey;
+        }
+
+        function handleSaveNewPatient(e) {
+            e.preventDefault();
+            const name = document.getElementById('inpPetName').value;
+            const newKey = "p_" + Date.now();
+            patientDatabase[newKey] = {
+                name: name, emoji: "🐾", breed: document.getElementById('inpBreed').value,
+                gender: "Dişi", age: "1 Yaş", weight: "5 kg", chip: "981098...",
+                owner: document.getElementById('inpOwner').value, phone: document.getElementById('inpPhone').value,
+                timeline: [{ date: "Bugün", type: "İlk Kayıt", note: "Dosya Açıldı", active: true }],
+                muayene: null, rx: null, reports: []
+            };
+            closeNewPatientModal();
+            populateAllDropdowns();
+            switchPatient(newKey);
+            document.getElementById('badgeTotalCount').innerText = Object.keys(patientDatabase).length;
+            alert(`"${name}" kaydedildi!`);
+        }
+
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+            document.querySelectorAll('.nav-btn').forEach(el => {
+                el.classList.remove('bg-emerald-800', 'text-white');
+                el.classList.add('text-emerald-100');
+            });
+            if (btn) {
+                btn.classList.add('bg-emerald-800', 'text-white');
+                btn.classList.remove('text-emerald-100');
+            }
+        }
+    </script>
+</body>
+</html>
