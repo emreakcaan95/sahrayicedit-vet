@@ -24,23 +24,27 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Capacitor ile Android Projesini Hazırla
+      - name: Web Dizinini Hazirla
+        run: |
+          mkdir -p www
+          cp index.html www/index.html
+
+      - name: Capacitor ile Android Projesini Olustur
         run: |
           npm init -y
-          npm install @capacitor/core @capacitor/cli @capacitor/android
-          npx cap init "Sahrayicedit Vet" "com.sahrayicedit.veteriner" --web-dir "."
+          npm install @capacitor/core@latest @capacitor/cli@latest @capacitor/android@latest
+          npx cap init "Sahrayicedit Vet" "com.sahrayicedit.veteriner" --web-dir "www"
           npx cap add android
-          mkdir -p android/app/src/main/assets/public
-          cp index.html android/app/src/main/assets/public/index.html
+          npx cap sync
           sed -i '/<application/i <uses-permission android:name="android.permission.INTERNET" />' android/app/src/main/AndroidManifest.xml
 
       - name: APK Derle
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          ./gradlew assembleDebug --stacktrace
 
-      - name: APK Dosyasını Yükle
+      - name: APK Dosyasini Yukle
         uses: actions/upload-artifact@v4
         with:
           name: Sahrayicedit-Veteriner-Debug-APK
